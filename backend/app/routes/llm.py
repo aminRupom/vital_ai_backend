@@ -4,10 +4,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import require_roles
 from app.config import settings
 from app.llm import get_llm
-from app.models.user import User
+from app.models.user import User, UserRole
 
 router = APIRouter(prefix="/llm", tags=["llm"])
 
@@ -35,8 +35,11 @@ class LLMStatusResponse(BaseModel):
     note: str
 
 
+_llm_roles = require_roles(UserRole.ADMIN, UserRole.OPS_MANAGER)
+
+
 @router.get("/status", response_model=LLMStatusResponse)
-async def llm_status(_: User = Depends(get_current_user)) -> LLMStatusResponse:
+async def llm_status(_: User = Depends(_llm_roles)) -> LLMStatusResponse:
     """Report which LLM provider is currently configured.
 
     Does NOT make a network call to the provider — purely reads config.
@@ -63,7 +66,7 @@ async def llm_status(_: User = Depends(get_current_user)) -> LLMStatusResponse:
 @router.post("/ping", response_model=LLMPingResponse)
 async def llm_ping(
     payload: LLMPingRequest,
-    _: User = Depends(get_current_user),
+    _: User = Depends(_llm_roles),
 ) -> LLMPingResponse:
     """Send a prompt to the configured LLM and return its response.
 
