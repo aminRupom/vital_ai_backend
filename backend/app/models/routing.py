@@ -23,7 +23,8 @@ class RoutingDecision(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         ForeignKey("triage_results.id", ondelete="CASCADE"), nullable=False, index=True
     )
     action: Mapped[RoutingAction] = mapped_column(
-        Enum(RoutingAction, name="routing_action", values_callable=lambda x: [e.value for e in x]), nullable=False
+        Enum(RoutingAction, name="routing_action", values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
     )
     target_queue: Mapped[str] = mapped_column(String(100), nullable=False)
     escalated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

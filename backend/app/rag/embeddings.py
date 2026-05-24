@@ -24,6 +24,7 @@ class NomicEmbedProvider:
     def _get_model(self) -> object:
         if self._model is None:
             from sentence_transformers import SentenceTransformer  # lazy import
+
             self._model = SentenceTransformer(self.MODEL_NAME, trust_remote_code=True)
         return self._model
 

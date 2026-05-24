@@ -70,6 +70,7 @@ jobs:
         run: |
           coverage run -m pytest tests/
           coverage report --fail-under=80 --include="app/services/*"
+          coverage report --fail-under=70 --include="app/routes/*"
           coverage xml
 
       - name: Upload coverage

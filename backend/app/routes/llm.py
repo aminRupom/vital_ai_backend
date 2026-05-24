@@ -1,5 +1,4 @@
-"""LLM diagnostic endpoints.
-"""
+"""LLM diagnostic endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -38,6 +37,15 @@ class LLMStatusResponse(BaseModel):
 _llm_roles = require_roles(UserRole.ADMIN, UserRole.OPS_MANAGER)
 
 
+def _get_current_model_name() -> str:
+    provider = settings.llm_provider.lower()
+    if provider == "ollama":
+        return settings.llm_model
+    if provider == "bedrock":
+        return settings.bedrock_model_id
+    return "unknown"
+
+
 @router.get("/status", response_model=LLMStatusResponse)
 async def llm_status(_: User = Depends(_llm_roles)) -> LLMStatusResponse:
     """Report which LLM provider is currently configured.
@@ -45,19 +53,17 @@ async def llm_status(_: User = Depends(_llm_roles)) -> LLMStatusResponse:
     Does NOT make a network call to the provider — purely reads config.
     Use /llm/ping to verify the provider is actually reachable.
     """
-    if settings.llm_provider.lower() == "ollama":
+    provider = settings.llm_provider.lower()
+    if provider == "ollama":
         endpoint = settings.ollama_base_url
-        model = settings.llm_model
-    elif settings.llm_provider.lower() == "bedrock":
+    elif provider == "bedrock":
         endpoint = f"bedrock-runtime.{settings.aws_region}.amazonaws.com"
-        model = settings.bedrock_model_id
     else:
         endpoint = "unknown"
-        model = "unknown"
 
     return LLMStatusResponse(
         provider=settings.llm_provider,
-        model=model,
+        model=_get_current_model_name(),
         endpoint=endpoint,
         note="Switch providers by changing LLM_PROVIDER in .env and restarting the API.",
     )
@@ -85,14 +91,9 @@ async def llm_ping(
     # Ollama returns str; Bedrock chat models return AIMessage with .content.
     response_text = result if isinstance(result, str) else getattr(result, "content", str(result))
 
-    if settings.llm_provider.lower() == "ollama":
-        model = settings.llm_model
-    else:
-        model = settings.bedrock_model_id
-
     return LLMPingResponse(
         provider=settings.llm_provider,
-        model=model,
+        model=_get_current_model_name(),
         prompt=payload.prompt,
         response=response_text,
     )

@@ -84,9 +84,7 @@ async def test_register_ignores_role_in_payload(client: AsyncClient):
     assert response.json()["role"] == "front_desk"
 
 
-async def test_admin_can_elevate_user_role(
-    client: AsyncClient, admin_headers: dict
-):
+async def test_admin_can_elevate_user_role(client: AsyncClient, admin_headers: dict):
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -108,9 +106,7 @@ async def test_admin_can_elevate_user_role(
     assert elevate.json()["role"] == "ops_manager"
 
 
-async def test_front_desk_cannot_elevate_role(
-    client: AsyncClient, front_desk_headers: dict
-):
+async def test_front_desk_cannot_elevate_role(client: AsyncClient, front_desk_headers: dict):
     reg = await client.post(
         "/api/v1/auth/register",
         json={

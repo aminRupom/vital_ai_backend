@@ -21,7 +21,10 @@ class TriageResult(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         ForeignKey("intake_cases.id", ondelete="CASCADE"), nullable=False, index=True
     )
     category: Mapped[TriageCategory] = mapped_column(
-        Enum(TriageCategory, name="triage_category", values_callable=lambda x: [e.value for e in x]), nullable=False
+        Enum(
+            TriageCategory, name="triage_category", values_callable=lambda x: [e.value for e in x]
+        ),
+        nullable=False,
     )
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     rationale: Mapped[str] = mapped_column(Text, nullable=False)

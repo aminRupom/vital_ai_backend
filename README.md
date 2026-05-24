@@ -31,11 +31,24 @@ Needs Python 3.13 and a running Postgres.
 
 ```bash
 cd backend
-pip install -r requirements.txt
-cp .env.example .env          # set JWT_SECRET_KEY and point DATABASE_URL at your local Postgres
+pip install -r requirements.txt      # development (unpinned, resolves latest)
+cp .env.example .env                 # set JWT_SECRET_KEY and point DATABASE_URL at your local Postgres
 # Generate a real secret: python -c "import secrets; print(secrets.token_urlsafe())"
 alembic upgrade head
 uvicorn app.main:app --reload
+```
+
+**Deployment** — use the pinned lock file for reproducible builds:
+
+```bash
+pip install -r requirements.lock     # exact versions, no surprises in CI or production
+```
+
+To regenerate the lock file after changing `requirements.txt`:
+
+```bash
+pip install pip-tools
+pip-compile requirements.txt --output-file requirements.lock
 ```
 
 ## Repository layout
