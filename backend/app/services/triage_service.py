@@ -39,6 +39,7 @@ def _matches_any(text: str, keywords: tuple[str, ...]) -> bool:
     return any(kw in text for kw in keywords)
 
 
+# Phase 3: replace with app.agents.triage_agent.classify_with_graph (LangGraph orchestration)
 async def classify(db: AsyncSession, request: TriageRequest, actor: User) -> TriageResponse:
     haystack = request.contact_reason.lower() + " " + " ".join(k.lower() for k in request.keywords)
 
