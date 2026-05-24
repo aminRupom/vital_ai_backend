@@ -1,7 +1,7 @@
 import enum
 from uuid import UUID
 
-from sqlalchemy import Enum, Float, ForeignKey, Text
+from sqlalchemy import Boolean, Enum, Float, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -25,3 +25,4 @@ class TriageResult(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     rationale: Mapped[str] = mapped_column(Text, nullable=False)
+    routed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

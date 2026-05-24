@@ -31,6 +31,7 @@ async def route_from_triage_id(
         escalated=escalated,
     )
     db.add(decision)
+    triage.routed = True
     await db.flush()
 
     await record_event(
