@@ -10,7 +10,6 @@ from app.config import settings
 from app.limiter import limiter
 from app.routes import audit, auth, consent, health, intake, llm, routing, triage
 
-from app.routes import admin
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,6 @@ app.include_router(triage.router, prefix=API_PREFIX)
 app.include_router(routing.router, prefix=API_PREFIX)
 app.include_router(llm.router, prefix=API_PREFIX)
 app.include_router(audit.router, prefix=API_PREFIX)
-
 
 @app.on_event("startup")
 async def _startup_validation() -> None:
