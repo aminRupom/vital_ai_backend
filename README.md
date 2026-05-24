@@ -9,7 +9,10 @@ Ollama (dev) / Bedrock (prod) swap.
 
 ```bash
 cd backend
-cp .env.example .env          # then edit JWT_SECRET_KEY
+cp .env.example .env
+# Generate a real secret — never leave the placeholder in production:
+python -c "import secrets; print(secrets.token_urlsafe())"
+# Paste the output as JWT_SECRET_KEY in .env, then:
 docker compose up --build
 docker compose exec api alembic upgrade head
 ```
@@ -28,7 +31,8 @@ Needs Python 3.13 and a running Postgres.
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env          # point DATABASE_URL at your local Postgres
+cp .env.example .env          # set JWT_SECRET_KEY and point DATABASE_URL at your local Postgres
+# Generate a real secret: python -c "import secrets; print(secrets.token_urlsafe())"
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
