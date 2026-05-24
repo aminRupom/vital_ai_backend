@@ -42,8 +42,13 @@ async def create_consent_record(
 
 
 async def get_consent_for_case(db: AsyncSession, case_id: UUID) -> ConsentRecord | None:
-    result = await db.execute(select(ConsentRecord).where(ConsentRecord.case_id == case_id))
-    return result.scalar_one_or_none()
+    result = await db.execute(
+        select(ConsentRecord)
+        .where(ConsentRecord.case_id == case_id)
+        .order_by(ConsentRecord.created_at.desc())
+        .limit(1)
+    )
+    return result.scalars().first()
 
 
 async def capture_consent(db: AsyncSession, consent_id: UUID, actor: User) -> ConsentRecord | None:
