@@ -48,6 +48,11 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://vitalai:vitalai@localhost:5432/vitalai
+        run: alembic upgrade head
+
       - name: Ruff lint
         run: ruff check app tests
 
@@ -60,7 +65,7 @@ jobs:
 
       - name: Run tests with coverage
         env:
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          DATABASE_URL: postgresql+asyncpg://vitalai:vitalai@localhost:5432/vitalai
           JWT_SECRET_KEY: ci-test-secret
         run: |
           coverage run -m pytest tests/

@@ -1,8 +1,7 @@
 """Test fixtures.
 
-Uses SQLite in-memory async via aiosqlite — fast, no Postgres required for unit tests.
-SQLite supports enough of what we use here. Integration tests against real Postgres
-run in CI as a separate job.
+Uses DATABASE_URL from the environment — defaults to SQLite in-memory for local dev,
+Postgres in CI (where DATABASE_URL is set to the service container).
 """
 
 import os
@@ -11,7 +10,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+_DB_URL = os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
 
 from app.auth.security import create_access_token, hash_password  # noqa: E402
@@ -22,10 +21,12 @@ from app.models import Base, User, UserRole  # noqa: E402
 
 @pytest_asyncio.fixture
 async def test_engine():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    engine = create_async_engine(_DB_URL, echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
 
