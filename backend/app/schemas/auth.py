@@ -10,7 +10,11 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=1, max_length=255)
-    role: UserRole = UserRole.FRONT_DESK
+    role: UserRole = UserRole.FRONT_DESK  # ignored on register — always forced to FRONT_DESK
+
+
+class ElevateRoleRequest(BaseModel):
+    new_role: UserRole
 
 
 class UserLogin(BaseModel):

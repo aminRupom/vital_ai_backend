@@ -71,24 +71,28 @@ uvicorn app.main:app --reload
 ## API endpoints
 
 Auth required on everything under `/api/v1/*` except `POST /api/v1/auth/register` and
-`POST /api/v1/auth/login`.
+`POST /api/v1/auth/login`. Registration always creates `front_desk` users regardless of
+the `role` field in the payload — use the elevate endpoint to promote users.
 
-| Method | Path                                | Auth | Roles                    | Description                       |
-|--------|-------------------------------------|------|--------------------------|-----------------------------------|
-| GET    | `/health`                           | —    | —                        | Health check                      |
-| POST   | `/api/v1/auth/register`             | —    | —                        | Register user                     |
-| POST   | `/api/v1/auth/login`                | —    | —                        | Get JWT                           |
-| GET    | `/api/v1/auth/me`                   | ✓    | any                      | Current user                      |
-| POST   | `/api/v1/intake`                    | ✓    | any                      | Create intake case                |
-| GET    | `/api/v1/intake/{id}`               | ✓    | any                      | Get intake case                   |
-| PATCH  | `/api/v1/intake/{id}/status`        | ✓    | ops_manager, admin       | Update intake status              |
-| POST   | `/api/v1/consent`                   | ✓    | any                      | Create consent record             |
-| GET    | `/api/v1/consent/by-case/{case_id}` | ✓    | any                      | Get consent for case              |
-| POST   | `/api/v1/consent/{id}/capture`      | ✓    | any                      | Capture consent (pending → ✓)     |
-| POST   | `/api/v1/consent/{id}/withdraw`     | ✓    | any                      | Withdraw consent                  |
-| POST   | `/api/v1/triage`                    | ✓    | any                      | Classify case urgency             |
-| POST   | `/api/v1/routing`                   | ✓    | any                      | Create routing decision           |
-| GET    | `/api/v1/routing/by-case/{case_id}` | ✓    | any                      | Get latest routing decision       |
+| Method | Path                                      | Auth | Roles                    | Description                       |
+|--------|-------------------------------------------|------|--------------------------|-----------------------------------|
+| GET    | `/health`                                 | —    | —                        | Health check                      |
+| POST   | `/api/v1/auth/register`                   | —    | —                        | Register user (role forced to front_desk) |
+| POST   | `/api/v1/auth/login`                      | —    | —                        | Get JWT (5 req/min per IP)        |
+| GET    | `/api/v1/auth/me`                         | ✓    | any                      | Current user                      |
+| POST   | `/api/v1/auth/users/{user_id}/elevate`    | ✓    | admin                    | Change a user's role              |
+| POST   | `/api/v1/intake`                          | ✓    | any                      | Create intake case                |
+| GET    | `/api/v1/intake/{id}`                     | ✓    | any                      | Get intake case                   |
+| PATCH  | `/api/v1/intake/{id}/status`              | ✓    | ops_manager, admin       | Update intake status              |
+| POST   | `/api/v1/consent`                         | ✓    | any                      | Create consent record             |
+| GET    | `/api/v1/consent/by-case/{case_id}`       | ✓    | any                      | Get consent for case              |
+| POST   | `/api/v1/consent/{id}/capture`            | ✓    | any                      | Capture consent (pending → ✓)     |
+| POST   | `/api/v1/consent/{id}/withdraw`           | ✓    | any                      | Withdraw consent                  |
+| POST   | `/api/v1/triage`                          | ✓    | any                      | Classify case urgency             |
+| POST   | `/api/v1/routing`                         | ✓    | any                      | Create routing decision           |
+| GET    | `/api/v1/routing/by-case/{case_id}`       | ✓    | any                      | Get latest routing decision       |
+| GET    | `/api/v1/llm/status`                      | ✓    | admin, ops_manager       | LLM provider config (no network)  |
+| POST   | `/api/v1/llm/ping`                        | ✓    | admin, ops_manager       | Live LLM reachability check       |
 
 ## LLM provider switch
 

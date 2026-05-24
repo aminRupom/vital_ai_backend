@@ -67,3 +67,63 @@ async def test_protected_endpoint_requires_token(client: AsyncClient):
         },
     )
     assert response.status_code == 401
+
+
+async def test_register_ignores_role_in_payload(client: AsyncClient):
+    """Sending role=admin in the register payload must still result in front_desk."""
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "tryingadmin@example.com",
+            "password": "password123",
+            "full_name": "Role Abuser",
+            "role": "admin",
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["role"] == "front_desk"
+
+
+async def test_admin_can_elevate_user_role(
+    client: AsyncClient, admin_headers: dict
+):
+    reg = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "target@example.com",
+            "password": "password123",
+            "full_name": "Target User",
+        },
+    )
+    assert reg.status_code == 201
+    user_id = reg.json()["id"]
+    assert reg.json()["role"] == "front_desk"
+
+    elevate = await client.post(
+        f"/api/v1/auth/users/{user_id}/elevate",
+        json={"new_role": "ops_manager"},
+        headers=admin_headers,
+    )
+    assert elevate.status_code == 200
+    assert elevate.json()["role"] == "ops_manager"
+
+
+async def test_front_desk_cannot_elevate_role(
+    client: AsyncClient, front_desk_headers: dict
+):
+    reg = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "another@example.com",
+            "password": "password123",
+            "full_name": "Another User",
+        },
+    )
+    user_id = reg.json()["id"]
+
+    response = await client.post(
+        f"/api/v1/auth/users/{user_id}/elevate",
+        json={"new_role": "admin"},
+        headers=front_desk_headers,
+    )
+    assert response.status_code == 403
