@@ -35,7 +35,13 @@ TIME_SENSITIVE_KEYWORDS: tuple[str, ...] = (
 
 
 def _matches_any(text: str, keywords: tuple[str, ...]) -> bool:
-    """Substring match — handles multi-word phrases like 'chest pain'."""
+    """Substring match — handles multi-word phrases like 'chest pain'.
+
+    WARNING: negation is not handled. "not urgent" will match the URGENT_KEYWORDS
+    list and incorrectly escalate. This is a known limitation of the rules-based
+    classifier and will be addressed when classify() is replaced by the LangGraph
+    NLP pipeline in Phase 3.
+    """
     return any(kw in text for kw in keywords)
 
 

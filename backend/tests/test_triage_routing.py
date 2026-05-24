@@ -1,3 +1,4 @@
+import pytest
 from httpx import AsyncClient
 
 
@@ -82,6 +83,27 @@ async def test_triage_patient_flag_escalates(client: AsyncClient, admin_headers:
     )
     assert response.json()["category"] == "time_sensitive"
     assert response.json()["escalated"] is True
+
+
+@pytest.mark.xfail(
+    reason="TODO(Phase 3): _matches_any has no negation handling — 'not urgent' hits the urgent keyword and incorrectly escalates"
+)
+async def test_triage_negation_not_urgent_escalates_incorrectly(
+    client: AsyncClient, admin_headers: dict
+):
+    """'not urgent' should be routine but the substring match hits 'urgent'."""
+    case_id = await _create_case(client, admin_headers)
+    response = await client.post(
+        "/api/v1/triage",
+        json={
+            "case_id": case_id,
+            "contact_reason": "this is not urgent, just a routine billing question",
+            "keywords": [],
+            "patient_priority_flags": [],
+        },
+        headers=admin_headers,
+    )
+    assert response.json()["category"] == "routine"
 
 
 async def test_triage_then_routing(client: AsyncClient, admin_headers: dict):
