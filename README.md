@@ -30,6 +30,7 @@ docker compose exec ollama ollama pull gemma2:9b
 Needs Python 3.13 and a running Postgres.
 
 ```bash
+cd backend
 pip install -r requirements.txt
 cp .env.example .env          # set JWT_SECRET_KEY and point DATABASE_URL at your local Postgres
 # Generate a real secret: python -c "import secrets; print(secrets.token_urlsafe())"
@@ -37,30 +38,34 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-## Project structure
+## Repository layout
 
 ```
-backend/
-├── docker-compose.yml          FastAPI + Postgres + Ollama
-├── Dockerfile
-├── requirements.txt
-├── alembic.ini
-├── .env.example
-├── alembic/
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions/
-│       └── 0001_initial.py    initial schema + append-only trigger
-└── app/
-    ├── main.py                 FastAPI app
-    ├── config.py               pydantic-settings, env-driven
-    ├── database.py             async engine + session factory
-    ├── models/                 SQLAlchemy ORM (users, case, consent, triage, routing, audit)
-    ├── schemas/                Pydantic API contracts (request/response shapes)
-    ├── auth/                   JWT + RBAC (security, dependencies)
-    ├── llm/                    provider abstraction - get_llm() switches by env
-    ├── routes/                 API handlers (health, auth, intake, consent, triage, routing)
-    └── services/               Business logic (intake, consent, triage, routing, audit)
+/                               monorepo root
+├── .github/workflows/          CI pipelines
+├── backend/                    this service
+│   ├── docker-compose.yml      FastAPI + Postgres + Ollama
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── alembic.ini
+│   ├── .env.example
+│   ├── alembic/
+│   │   ├── env.py
+│   │   ├── script.py.mako
+│   │   └── versions/
+│   │       └── 0001_initial.py    initial schema + append-only trigger
+│   └── app/
+│       ├── main.py                 FastAPI app
+│       ├── config.py               pydantic-settings, env-driven
+│       ├── database.py             async engine + session factory
+│       ├── models/                 SQLAlchemy ORM (users, case, consent, triage, routing, audit)
+│       ├── schemas/                Pydantic API contracts (request/response shapes)
+│       ├── auth/                   JWT + RBAC (security, dependencies)
+│       ├── llm/                    provider abstraction - get_llm() switches by env
+│       ├── routes/                 API handlers (health, auth, intake, consent, triage, routing)
+│       └── services/               Business logic (intake, consent, triage, routing, audit)
+├── frontend/                   (future)
+└── agents/                     (future)
 ```
 
 ## API endpoints
