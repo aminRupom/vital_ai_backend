@@ -15,6 +15,13 @@ async def record_event(
     actor: User | None = None,
     details: dict | None = None,
 ) -> AuditEvent:
+    """Append a new audit event and flush it to the session.
+
+    This function flushes but does NOT commit. The caller is responsible for
+    committing so that the audit event and the associated business change
+    (e.g. consent captured, triage created) are persisted atomically in the
+    same transaction. Never call db.commit() inside this function.
+    """
     event = AuditEvent(
         case_id=case_id,
         actor_id=actor.id if actor else None,
