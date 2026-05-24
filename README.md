@@ -94,6 +94,14 @@ the `role` field in the payload — use the elevate endpoint to promote users.
 | GET    | `/api/v1/llm/status`                      | ✓    | admin, ops_manager       | LLM provider config (no network)  |
 | POST   | `/api/v1/llm/ping`                        | ✓    | admin, ops_manager       | Live LLM reachability check       |
 
+## Rate limiting
+
+`POST /api/v1/auth/login` is rate-limited to **5 requests per minute per IP** using
+[slowapi](https://github.com/laurents/slowapi). Exceeding the limit returns `429 Too Many Requests`.
+
+The limit is configurable via `LOGIN_RATE_LIMIT` in `.env` (default `5/minute`).
+Accepts any [limits](https://limits.readthedocs.io/en/stable/string-notation.html) string, e.g. `10/minute`, `100/hour`.
+
 ## LLM provider switch
 
 Set `LLM_PROVIDER` in `.env`:

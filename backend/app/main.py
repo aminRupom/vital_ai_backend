@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
+from app.limiter import limiter
 from app.routes import auth, consent, health, intake, llm, routing, triage
 
 app = FastAPI(
@@ -10,6 +13,9 @@ app = FastAPI(
     ),
     version=settings.app_version,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Public
 app.include_router(health.router)

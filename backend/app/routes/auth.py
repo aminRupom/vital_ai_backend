@@ -1,13 +1,15 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_roles
 from app.auth.security import create_access_token, hash_password, verify_password
+from app.config import settings
 from app.database import get_db
+from app.limiter import limiter
 from app.models.user import User, UserRole
 from app.schemas.auth import ElevateRoleRequest, Token, UserOut, UserRegister
 
@@ -50,7 +52,9 @@ async def elevate_user_role(
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit(settings.login_rate_limit)
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ) -> Token:

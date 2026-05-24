@@ -19,6 +19,9 @@ langchain>=0.2.0
 langchain-community>=0.2.0
 langchain-aws>=0.1.0
 
+# Rate limiting
+slowapi>=0.1.9
+
 # Phase 3 — orchestration, RAG, observability
 langgraph>=0.1.0
 guardrails-ai>=0.5.0
