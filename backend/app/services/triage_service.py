@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.triage import TriageCategory, TriageResult
 from app.models.user import User
-from app.schemas.enums import RoutingAction
 from app.schemas.triage import TriageRequest, TriageResponse
 from app.services.audit_service import record_event
+from app.services.routing_rules import decide
 
 URGENT_KEYWORDS: tuple[str, ...] = (
     "emergency",
@@ -59,30 +59,20 @@ async def classify(db: AsyncSession, request: TriageRequest, actor: User) -> Tri
         category = TriageCategory.IMMEDIATE
         confidence = 0.9
         rationale = "Urgent keyword or flagged-patient + time-sensitive — immediate escalation"
-        routing_action = RoutingAction.DIRECT_ESCALATION
-        target_queue = "escalation_immediate"
-        escalated = True
     elif has_time_sensitive or has_patient_flags:
         category = TriageCategory.TIME_SENSITIVE
         confidence = 0.7
         rationale = "Time-sensitive keyword or patient priority flag — human review"
-        routing_action = RoutingAction.HUMAN_REVIEW
-        target_queue = "priority_review"
-        escalated = True
     elif insufficient_info:
         category = TriageCategory.LOW_CONFIDENCE
         confidence = 0.4
         rationale = "Insufficient information — manual review required"
-        routing_action = RoutingAction.HUMAN_REVIEW
-        target_queue = "low_confidence_review"
-        escalated = True
     else:
         category = TriageCategory.ROUTINE
         confidence = 0.8
         rationale = "Routine administrative matter — normal workflow"
-        routing_action = RoutingAction.ADMIN_WORKFLOW
-        target_queue = "admin_routine"
-        escalated = False
+
+    routing_action, target_queue, escalated = decide(category)
 
     triage_row = TriageResult(
         case_id=request.case_id,

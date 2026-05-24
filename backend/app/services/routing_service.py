@@ -7,21 +7,11 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.routing import RoutingAction, RoutingDecision
-from app.models.triage import TriageCategory, TriageResult
+from app.models.routing import RoutingDecision
+from app.models.triage import TriageResult
 from app.models.user import User
 from app.services.audit_service import record_event
-
-
-def _decide(category: TriageCategory) -> tuple[RoutingAction, str, bool]:
-    """Pure function — maps triage category to routing action and queue."""
-    if category == TriageCategory.IMMEDIATE:
-        return RoutingAction.DIRECT_ESCALATION, "escalation_immediate", True
-    if category == TriageCategory.TIME_SENSITIVE:
-        return RoutingAction.HUMAN_REVIEW, "priority_review", True
-    if category == TriageCategory.LOW_CONFIDENCE:
-        return RoutingAction.HUMAN_REVIEW, "low_confidence_review", True
-    return RoutingAction.ADMIN_WORKFLOW, "admin_routine", False
+from app.services.routing_rules import decide
 
 
 async def route_from_triage_id(
@@ -31,7 +21,7 @@ async def route_from_triage_id(
     if triage is None:
         return None
 
-    action, target_queue, escalated = _decide(triage.category)
+    action, target_queue, escalated = decide(triage.category)
 
     decision = RoutingDecision(
         case_id=triage.case_id,
