@@ -28,5 +28,17 @@ class Settings(BaseSettings):
     aws_region: str = "ap-southeast-2"
     bedrock_model_id: str = "anthropic.claude-3-haiku-20240307-v1:0"
 
+    # Cache
+    redis_url: str = "redis://redis:6379/0"
+
+    # Object storage
+    minio_endpoint: str = "http://minio:9000"
+    minio_access_key: str = "minioadmin"
+    minio_secret_key: str = "minioadmin"
+
+    # Embeddings
+    embedding_provider: str = "nomic"  # nomic (dev) | bedrock (prod)
+    embedding_model: str = "nomic-embed-text"
+
 
 settings = Settings()

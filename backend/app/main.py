@@ -8,7 +8,9 @@ from starlette.responses import Response
 
 from app.config import settings
 from app.limiter import limiter
-from app.routes import auth, consent, health, intake, llm, routing, triage
+from app.routes import audit, auth, consent, health, intake, llm, routing, triage
+
+from app.routes import admin
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,29 @@ app.include_router(consent.router, prefix=API_PREFIX)
 app.include_router(triage.router, prefix=API_PREFIX)
 app.include_router(routing.router, prefix=API_PREFIX)
 app.include_router(llm.router, prefix=API_PREFIX)
+app.include_router(audit.router, prefix=API_PREFIX)
+
+
+@app.on_event("startup")
+async def _startup_validation() -> None:
+    is_prod = settings.app_env == "production"
+    if is_prod and settings.synthetic_only:
+        raise RuntimeError(
+            "SYNTHETIC_ONLY=true is not allowed in production. "
+            "Set SYNTHETIC_ONLY=false or change APP_ENV."
+        )
+    if is_prod and not settings.synthetic_only:
+        logger.warning("Running in production mode with real patient data (SYNTHETIC_ONLY=false)")
+    redacted = {
+        "APP_ENV": settings.app_env,
+        "LLM_PROVIDER": settings.llm_provider,
+        "EMBEDDING_PROVIDER": settings.embedding_provider,
+        "SYNTHETIC_ONLY": settings.synthetic_only,
+        "DATABASE_URL": "***",
+        "JWT_SECRET_KEY": "***",
+        "MINIO_SECRET_KEY": "***",
+    }
+    logger.info("startup config: %s", redacted)
 
 
 @app.get("/")
